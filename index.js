@@ -7,22 +7,23 @@ const {makePane, makeDivider, makeSplitPane} = require('tre-split-pane')
 const h = require('mutant/html-element')
 const Value = require('mutant/value')
 const computed = require('mutant/computed')
-const setStyle = require('module-styles')('tre-images-demo')
+const setStyle = require('module-styles')('abundance')
 
-styles()
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
 
+  styles()
+
   const watchMerged = WatchMerged(ssb)
   const primarySelection = Value()
-  const merged_kv = computed(primarySelection, kv => {
+  const mergedKvObs = computed(primarySelection, kv => {
     const c = content(kv)
     if (!c) return
     return watchMerged(c.revisionRoot || kv.key)
   })
 
-  const renderPanel = StylePanel(ssb, {
+  const renderStylePanel = StylePanel(ssb, {
   })
 
   const renderFinder = Finder(ssb, {
@@ -35,25 +36,76 @@ module.exports = function(ssb, config, opts) {
   })
 
   const where = Value('editor')
-  const renderEditor = Editor(ssb, where, merged_kv, render)
+  const renderEditor = Editor(ssb, where, mergedKvObs, render)
 
-  return h('.abundane', [
-    makeSplitPane({horiz: true}, [
-      makePane('25%', [
-        makeSplitPane({horiz: false}, [
-          makePane('50%', [
-            renderFinder(config.tre.branches.root, {path: []})
-          ]),
-          makeDivider(),
-          makePane('50%', [
-            renderPanel()
-          ])
+  const modes = [   //    splitpane?  right?    editor?    fullscreen?
+    {name: 'edit',        ui: true,  ri: true,  ed: true,  fs: false },
+    {name: 'sidebar',     ui: true,  ri: true,  ed: false, fs: true  },
+    {name: 'fullscreen',  ui: false, ri: false, ed: false, fs: true  },
+    {name: 'overlay',     ui: true,  ri: false, ed: false, fs: true  }
+  ]
+  const mode = Value(0)
+
+  window.addEventListener('keydown', (e)=>{
+    if (e.key === 'Tab' && e.shiftKey) {
+      mode.set( (mode() + 1) % modes.length)
+      console.log('new view mode:', modes[mode()].name)
+      e.preventDefault()
+    }
+  })
+
+  function renderStage() {
+    return h('.abundance-stage', {}, [
+      computed(mergedKvObs, kv => {
+        if (!kv) return []
+        return render(kv)
+      })
+    ])
+  }
+
+  function display(obs) {
+    return {
+      display: computed(obs, s => s ? 'block' : 'none')
+    } 
+  }
+
+  function renderSidebar() {
+    return h('.abundance-sidebar', {
+    }, [
+      makeSplitPane({horiz: false}, [
+        makePane('50%', [
+          renderFinder(config.tre.branches.root, {path: []})
+        ]),
+        makeDivider(),
+        makePane('50%', [
+          renderStylePanel()
         ])
-      ]),
-      makeDivider(),
-      makePane('70%', [
-        renderBar(where),
-        renderEditor()
+      ])
+    ])
+  }
+
+  function whenVisible(aspect, a, b) {
+    return computed(mode, mode => modes[mode][aspect] ? a : b)
+  }
+
+  return h('.abundance', {
+    classList: computed(mode, mode => `viewmode-${[modes[mode].name]}`)
+  }, [
+    whenVisible('ri', [], whenVisible('fs', renderStage(), [])),
+    h('.abundance-ui', {
+      style: { display: whenVisible('ui', 'block', 'none') }
+    }, [
+      makeSplitPane({horiz: true}, [
+        makePane('25%', [renderSidebar()]),
+        makeDivider(),
+        makePane('70%', /*{
+          style: {opacity: whenVisible('ri', 1, 0)}
+        },*/ [
+          whenVisible('fs', renderStage(), []),
+          renderEditor({
+            style: {display: whenVisible('ed', 'block',  'none')}
+          })
+        ])
       ])
     ])
   ])
@@ -87,10 +139,14 @@ function Editor(ssb, whereObs, mergedKvObs, renderEditor) {
     }
   })
 
-  return function() {
-    return h('.tre-images-editor', [
+  return function(opts) {
+    opts = opts || {}
+    return h('.tre-multi-editor', opts, [
       makeSplitPane({horiz: true}, [
-        makePane('60%', shellOrStage()),
+        makePane('60%', [
+          renderBar(whereObs),
+          shellOrStage()
+        ]),
         makeDivider(),
         makePane('40%', sheet())
       ])
@@ -163,6 +219,18 @@ function styles() {
       --tre-secondary-selection-color: yellow;
       font-family: sans-serif;
     }
+    .abundance {
+      position: relative;
+    }
+    .abundance.viewmode-overlay > .abundance-ui {
+      opacity: 0.7;
+      position: absolute;
+      z-index: 2;
+      top: 0;
+    }
+    .abundance.viewmode-overlay > .abundance-ui > .horizontal-split-pane > .pane:nth-child(3) {
+      opacity: 0;
+    }
     h1 {
       font-size: 18px;
     }
@@ -181,15 +249,11 @@ function styles() {
     .tre-finder summary:focus {
       outline: 1px solid rgba(255,255,255,0.1);
     }
-    .tre-images-editor {
-      max-width: 1000px;
-    }
     .tre-property-sheet {
       font-size: 9pt;
       background: #4a4a4b;
       color: #b6b6b6;
     }
-
     .tre-property-sheet summary {
       font-weight: bold;
       text-shadow: 0 0 4px black;

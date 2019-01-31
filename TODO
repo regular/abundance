@@ -1,0 +1,10 @@
+Issues
+
+- Shift-Tab for fullscreen mode with sidebar overlay
+- Render all fonts
+- pane CSS
+- JSON editor
+- editor shell talks about revisionRoot being changed on _new_ images
+- shows: "remove schema" occasionally
+- property sheet gird layout issues
+- can't drop svgs
