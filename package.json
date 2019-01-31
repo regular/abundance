@@ -1,0 +1,88 @@
+{
+  "name": "abundance",
+  "version": "1.0.0",
+  "description": "a CMS based on tre",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/regular/abundance.git"
+  },
+  "keywords": [],
+  "author": "Jan Bölsche <jan@lagomorph.de> (https://regular.codes/)",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/regular/abundance/issues"
+  },
+  "homepage": "https://github.com/regular/abundance#readme",
+  "tre-init": {
+    "plugins": {
+      "tre-client": true,
+      "ssb-revisions": true
+    },
+    "prototypes": {
+      "tre-images": true,
+      "tre-fonts": true,
+      "tre-stylesheets": true
+    },
+    "importers": {
+      "tre-images": true,
+      "tre-fonts": true,
+      "tre-stylesheets": true
+    },
+    "files": {
+      "svg": {
+        "path": "assets/Svg_example4.svg",
+        "content": {
+          "branch": "%images",
+          "root": "%root"
+        }
+      },
+      "beaver": {
+        "path": "assets/beaver.jpg",
+        "content": {
+          "branch": "%images",
+          "root": "%root"
+        }
+      },
+      "base-css": {
+        "path": "assets/base.css",
+        "content": {
+          "branch": "%stylesheets",
+          "root": "%root"
+        }
+      },
+      "font": {
+        "path": "assets/NotoSansDisplay-ThinItalic.ttf",
+        "content": {
+          "branch": "%fonts",
+          "root": "%root"
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "tape": "^4.9.2"
+  },
+  "dependencies": {
+    "debug": "^4.1.1",
+    "module-styles": "^1.0.0",
+    "mutant": "^3.22.1",
+    "ssb-revisions": "^1.0.1",
+    "tre-client": "^2.1.0",
+    "tre-editor-shell": "^1.4.0",
+    "tre-file-importer": "^3.1.5",
+    "tre-finder": "^2.2.0",
+    "tre-folders": "^1.1.0",
+    "tre-fonts": "^1.5.0",
+    "tre-images": "^1.7.1",
+    "tre-property-sheet": "^1.2.1",
+    "tre-prototypes": "^1.6.0",
+    "tre-render-stack": "^1.0.1",
+    "tre-split-pane": "^1.0.1",
+    "tre-style-panel": "^1.1.0",
+    "tre-stylesheets": "^1.2.0"
+  }
+}
