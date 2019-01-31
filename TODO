@@ -1,8 +1,6 @@
 Issues
 
-- Shift-Tab for fullscreen mode with sidebar overlay
-- Render all fonts
-- pane CSS
+- pane CSS (make it full height)
 - JSON editor
 - editor shell talks about revisionRoot being changed on _new_ images
 - shows: "remove schema" occasionally

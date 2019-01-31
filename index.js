@@ -8,12 +8,14 @@ const h = require('mutant/html-element')
 const Value = require('mutant/value')
 const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
-
+const RenderFonts = require('./render-fonts')
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
 
   styles()
+  const renderFonts = RenderFonts(ssb, config)
+  document.body.appendChild(renderFonts())
 
   const watchMerged = WatchMerged(ssb)
   const primarySelection = Value()
