@@ -211,7 +211,7 @@ function revisionRoot(kv) {
 
 function styles() {
   setStyle(`
-    body, html, .abundance {
+    body, html, .abundance, .abundance-ui, .abundance-stage, .tre-multi-editor {
       height: 100%;
       margin: 0;
       padding: 0;
@@ -255,6 +255,7 @@ function styles() {
       font-size: 9pt;
       background: #4a4a4b;
       color: #b6b6b6;
+      height: 100%;
     }
     .tre-property-sheet summary {
       font-weight: bold;
