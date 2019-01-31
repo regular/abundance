@@ -1,6 +1,6 @@
 {
   "name": "abundance",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "a CMS based on tre",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/regular/abundance.git"
   },
-  "keywords": ["tre", "cms", "ssb"],
+  "keywords": [
+    "tre",
+    "cms",
+    "ssb"
+  ],
   "author": "Jan Bölsche <jan@lagomorph.de> (https://regular.codes/)",
   "license": "AGPL-3.0-or-later",
   "bugs": {
