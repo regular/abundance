@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/regular/abundance.git"
   },
-  "keywords": [],
+  "keywords": ["tre", "cms", "ssb"],
   "author": "Jan Bölsche <jan@lagomorph.de> (https://regular.codes/)",
   "license": "AGPL-3.0-or-later",
   "bugs": {
