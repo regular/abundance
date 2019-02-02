@@ -127,9 +127,12 @@ function renderBar(where) {
   ])
 }
 
-function Editor(ssb, whereObs, mergedKvObs, renderEditor) {
+
+function Editor(ssb, whereObs, mergedKvObs, render) {
   let current_kv
-  const contentObs = Value({})
+  const watchMerged = WatchMerged(ssb)
+  const contentObs = Value()
+  const liveDraftKvObs = liveDraftKv(contentObs)
 
   const renderPropertySheet = PropertySheet()
   const renderShell = Shell(ssb, {
@@ -155,18 +158,30 @@ function Editor(ssb, whereObs, mergedKvObs, renderEditor) {
     ])
   }
 
+  function liveDraftKv(contentObs) {
+    const editing_kv = computed(contentObs, content => {
+      if (!content) return null
+      return {
+        key: 'fake key',
+        value: {
+          content
+        }
+      }
+    })
+    return watchMerged(editing_kv)
+  }
+
   function stage(where) {
+    current_kv = null
     return computed(mergedKvObs, kv => {
       if (!kv) return []
-      contentObs.set(Object.assign({}, unmergeKv(kv).value.content))
-      return renderEditor(kv, {where})  
+      return render(kv, {where})  
     })
   }
 
   function shellOrStage() {
     return computed(whereObs, where => {
       if (where !== 'editor' && where !== 'compact-editor') {
-        current_kv = null
         return stage(where)
       }
       return shell(where)
@@ -180,9 +195,8 @@ function Editor(ssb, whereObs, mergedKvObs, renderEditor) {
       ) return computed.NO_CHANGE
       current_kv = kv
       if (!kv) return []
-      contentObs.set(unmergeKv(kv).value.content)
-      return renderShell(kv, {
-        renderEditor,
+      return renderShell(unmergeKv(kv), {
+        renderEditor: render,
         contentObs,
         where
       })
@@ -190,7 +204,7 @@ function Editor(ssb, whereObs, mergedKvObs, renderEditor) {
   }
 
   function sheet() {
-    return computed(mergedKvObs, kv => {
+    return computed(liveDraftKvObs, kv => {
       return renderPropertySheet(kv, {contentObs})
     })
   }

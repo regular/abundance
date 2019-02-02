@@ -1,8 +1,61 @@
 Issues
 
-- pane CSS (make it full height)
-- JSON editor
-- editor shell talks about revisionRoot being changed on _new_ images
-- shows: "remove schema" occasionally
+- can't resize styles panel
+- scrolling of treeview and styles panel
+- no JSON editor
 - property sheet gird layout issues
 - can't drop svgs
+- after file drop, tree is blocked until another drag took place
+- PropertySheet keeps 'unpublished' highlight after publishing
+
+Features
+===
+
+Profile Page / Own Avatar in status bar
+  - image crop tool
+
+Tree
+  - file drop between siblings
+  - move existing nodes to new parent
+
+Finder
+  - clone action, trash action
+  - hamburger menu
+  - hide nodes starting eith a dot
+
+Property Sheet/schema
+  - message Id as format
+  - uses search by name in suggestion pop-up
+  - range slider
+
+MarkDown/TextRenderer
+  - importFiles
+  - factory
+  - grid of languages, each one with their own ace instance
+  - 'add language' button
+  - markdown preview
+  - msgid[type=font] in schema
+
+StylePanel
+  - enable/disable sheets
+
+Icons
+  - tre-search: search by name [and optionally type]
+    - can be used in PropertySheet if format is msgid[type]
+  - tre-icons: icon renderer takes a name and renders image
+    - or, more general: renders a message of that name/type
+
+Router
+  - expose tree node
+  - display all prototype chain in search results
+
+Status Bar
+  - progress bars/logo
+  - peers
+  - forks/incomplete
+  - boot message version
+
+Folders
+- click on folder tile sets secondarySelection
+- double-click sets primarySelection
+- drag to manual order
