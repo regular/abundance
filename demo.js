@@ -2,8 +2,9 @@ const {client} = require('tre-client')
 const Importer = require('tre-file-importer')
 const h = require('mutant/html-element')
 const setStyle = require('module-styles')('tre-images-demo')
-const RenderStack = require('tre-render-stack')
+const TwoRenderStacks = require('./two-render-stacks')
 const Abundance = require('.')
+require('brace/theme/solarized_dark')
 
 const Images = require('tre-images')
 const Fonts = require('tre-fonts')
@@ -20,6 +21,9 @@ client( (err, ssb, config) => {
           .use(Folders)
 
   const prototypes = config.tre.prototypes
+
+  const renderStack = TwoRenderStacks(ssb)
+  const {render, renderTile} = renderStack
   const renderImage = Images(ssb, {
     prototypes
   })
@@ -30,17 +34,20 @@ client( (err, ssb, config) => {
     prototypes
   })
   const renderFolder = Folders(ssb, {
-    prototypes
+    prototypes,
+    renderTile
   })
 
-  const rendererStack = RenderStack(ssb)
+  renderStack
     .use(renderImage)
     .use(renderFont)
     .use(renderStylesheet)
     .use(renderFolder)
-  const render = rendererStack.render
 
   document.body.appendChild(Abundance(ssb, config, {
+    ace: {
+      theme: 'ace/theme/solarized_dark',
+    },
     importer,
     render
   }))

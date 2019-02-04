@@ -9,6 +9,7 @@ const Value = require('mutant/value')
 const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
 const RenderFonts = require('./render-fonts')
+const MultiEditor = require('tre-multi-editor')
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
@@ -25,8 +26,7 @@ module.exports = function(ssb, config, opts) {
     return watchMerged(c.revisionRoot || kv.key)
   })
 
-  const renderStylePanel = StylePanel(ssb, {
-  })
+  const renderStylePanel = StylePanel(ssb)
 
   const renderFinder = Finder(ssb, {
     importer,
@@ -36,9 +36,9 @@ module.exports = function(ssb, config, opts) {
       return kv && kv.meta && kv.meta["prototype-chain"] ? h('i', '(has proto)') : []
     }
   })
+  const renderMultiEditor = MultiEditor(ssb, opts)
 
   const where = Value('editor')
-  const renderEditor = Editor(ssb, where, mergedKvObs, render)
 
   const modes = [   //    splitpane?  right?    editor?    fullscreen?
     {name: 'edit',        ui: true,  ri: true,  ed: true,  fs: false },
@@ -100,114 +100,20 @@ module.exports = function(ssb, config, opts) {
       makeSplitPane({horiz: true}, [
         makePane('25%', [renderSidebar()]),
         makeDivider(),
-        makePane('70%', /*{
+        makePane('70%',/* {
           style: {opacity: whenVisible('ri', 1, 0)}
         },*/ [
           whenVisible('fs', renderStage(), []),
-          renderEditor({
+          h('div.abundance-editor', {
             style: {display: whenVisible('ed', 'block',  'none')}
-          })
+          }, computed(renderFinder.primarySelectionObs, kv => {
+            if (!kv) return []
+            return renderMultiEditor(kv, {render})
+          }))
         ])
       ])
     ])
   ])
-}
-
-function renderBar(where) {
-  return h('.bar', [
-    h('select', {
-      'ev-change': e => {
-        where.set(e.target.value)
-      }
-    }, [
-      h('option', 'editor'),
-      h('option', 'stage'),
-      h('option', 'thumbnail')
-    ])
-  ])
-}
-
-
-function Editor(ssb, whereObs, mergedKvObs, render) {
-  let current_kv
-  const watchMerged = WatchMerged(ssb)
-  const contentObs = Value()
-  const liveDraftKvObs = liveDraftKv(contentObs)
-
-  const renderPropertySheet = PropertySheet()
-  const renderShell = Shell(ssb, {
-    save: (kv, cb) => {
-      ssb.publish(kv.value.content, (err, msg) => {
-        console.log('pyblish:', err, msg)
-        cb(err, msg)
-      })
-    }
-  })
-
-  return function(opts) {
-    opts = opts || {}
-    return h('.tre-multi-editor', opts, [
-      makeSplitPane({horiz: true}, [
-        makePane('60%', [
-          renderBar(whereObs),
-          shellOrStage()
-        ]),
-        makeDivider(),
-        makePane('40%', sheet())
-      ])
-    ])
-  }
-
-  function liveDraftKv(contentObs) {
-    const editing_kv = computed(contentObs, content => {
-      if (!content) return null
-      return {
-        key: 'fake key',
-        value: {
-          content
-        }
-      }
-    })
-    return watchMerged(editing_kv)
-  }
-
-  function stage(where) {
-    current_kv = null
-    return computed(mergedKvObs, kv => {
-      if (!kv) return []
-      return render(kv, {where})  
-    })
-  }
-
-  function shellOrStage() {
-    return computed(whereObs, where => {
-      if (where !== 'editor' && where !== 'compact-editor') {
-        return stage(where)
-      }
-      return shell(where)
-    })
-  }
-
-  function shell(where) {
-    return computed(mergedKvObs, kv => {
-      if (
-        revisionRoot(kv) == revisionRoot(current_kv)
-      ) return computed.NO_CHANGE
-      current_kv = kv
-      if (!kv) return []
-      return renderShell(unmergeKv(kv), {
-        renderEditor: render,
-        contentObs,
-        where
-      })
-    })
-  }
-
-  function sheet() {
-    return computed(liveDraftKvObs, kv => {
-      return renderPropertySheet(kv, {contentObs})
-    })
-  }
 }
 
 function content(kv) {
@@ -288,6 +194,9 @@ function styles() {
     .tre-property-sheet .inherited input {
       background: #656464;
     }
+    .tre-property-sheet .new input {
+      background: white;
+    }
     .tre-property-sheet details > div {
       padding-left: 1em;
     }
@@ -304,6 +213,24 @@ function styles() {
     }
     .tre-property-sheet details {
       grid-column: 1/-1;
+    }
+    .tre-folders {
+      background-color: #777;
+    }
+    .tre-folders .tile {
+      border: 1px solid #444;
+      background: #666;
+    }
+    .tre-folders .tile > .name {
+      font-size: 9pt;
+      background: #444;
+      color: #aaa;
+    }
+    .tile>.tre-image-thumbnail {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
     }
   `)
 }
