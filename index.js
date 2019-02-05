@@ -10,6 +10,7 @@ const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
 const RenderFonts = require('./render-fonts')
 const MultiEditor = require('tre-multi-editor')
+const Icons = require('./icons-by-name')
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
@@ -27,13 +28,27 @@ module.exports = function(ssb, config, opts) {
   })
 
   const renderStylePanel = StylePanel(ssb)
-
+  const iconByName = Icons(ssb, config)
   const renderFinder = Finder(ssb, {
     importer,
     skipFirstLevel: true,
     primarySelection,
     details: (kv, ctx) => {
-      return kv && kv.meta && kv.meta["prototype-chain"] ? h('i', '(has proto)') : []
+      if (!kv) return []
+      const hasProto = kv.meta && kv.meta["prototype-chain"]
+      return [
+        h('div.indicators', [ 
+          hasProto ? iconByName('gift') : [],
+          iconByName('git branch', {alt: 'Node has multiple heads'}),
+          iconByName('alert', {alt: 'Node has incomplete history'}),
+        ]),
+        h('div.actions', [ 
+          iconByName('add circle outline', {alt: 'add child node'}),
+          iconByName('albums', {alt: 'clone'}),
+          iconByName('trash', {alt: 'move to trash'}),
+          iconByName('more', {alt: 'more ...'})
+        ])
+      ]
     }
   })
   const renderMultiEditor = MultiEditor(ssb, opts)

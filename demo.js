@@ -11,6 +11,8 @@ const Fonts = require('tre-fonts')
 const Stylesheets = require('tre-stylesheets')
 const Folders = require('tre-folders')
 
+const Icons = require('./icons-by-name')
+
 client( (err, ssb, config) => {
   if (err) return console.error(err)
 
@@ -38,11 +40,19 @@ client( (err, ssb, config) => {
     renderTile
   })
 
+  const iconByName = Icons(ssb, config)
+
   renderStack
     .use(renderImage)
     .use(renderFont)
     .use(renderStylesheet)
     .use(renderFolder)
+    .use(function(kv, ctx) {
+      if (!kv) return
+      if (kv.value.content.type !== 'folder') return
+      if (ctx.where !== 'tile') return
+      return iconByName('folder open', ctx)
+    })
 
   document.body.appendChild(Abundance(ssb, config, {
     ace: {
