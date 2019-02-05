@@ -1,12 +1,18 @@
 Issues
 
-- can't resize styles panel
-- scrolling of treeview and styles panel
-- no JSON editor
-- property sheet gird layout issues
-- can't drop svgs
+- pass policy 'allowAllAuthors' around
+- render basic history in multi editor
 - after file drop, tree is blocked until another drag took place
 - PropertySheet keeps 'unpublished' highlight after publishing
+- file drop between siblings
+- node drop between siblings
+- clone action, trash action
+
+minor issues
+- can't resize styles panel
+- scrolling of treeview and styles panel
+- property sheet gird layout issues
+- folder tile styles
 
 Features
 ===
@@ -14,14 +20,9 @@ Features
 Profile Page / Own Avatar in status bar
   - image crop tool
 
-Tree
-  - file drop between siblings
-  - move existing nodes to new parent
-
 Finder
-  - clone action, trash action
   - hamburger menu
-  - hide nodes starting eith a dot
+  - hide nodes starting with a dot
 
 Property Sheet/schema
   - message Id as format
@@ -59,3 +60,4 @@ Folders
 - click on folder tile sets secondarySelection
 - double-click sets primarySelection
 - drag to manual order
+- file drop to import
