@@ -58,6 +58,13 @@
           "root": "%root"
         }
       },
+      "finder-css": {
+        "path": "assets/finder.css",
+        "content": {
+          "branch": "%stylesheets",
+          "root": "%root"
+        }
+      },
       "font": {
         "path": "assets/NotoSansDisplay-ThinItalic.ttf",
         "content": {
@@ -80,10 +87,10 @@
     "tre-client": "^2.1.0",
     "tre-editor-shell": "^1.4.0",
     "tre-file-importer": "^3.1.5",
-    "tre-finder": "^2.6.1",
+    "tre-finder": "^2.7.0",
     "tre-folders": "^1.1.0",
     "tre-fonts": "^1.5.1",
-    "tre-images": "^1.7.2",
+    "tre-images": "^1.10.0",
     "tre-multi-editor": "^1.3.0",
     "tre-property-sheet": "^1.2.2",
     "tre-prototypes": "^1.6.0",

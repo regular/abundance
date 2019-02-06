@@ -1,12 +1,13 @@
 Issues
 
+- you can still move cloned nodes into themselves
+- tree layout is broken if a node has no name
 - pass policy 'allowAllAuthors' around
 - render basic history in multi editor
 - after file drop, tree is blocked until another drag took place
 - PropertySheet keeps 'unpublished' highlight after publishing
 - file drop between siblings
 - node drop between siblings
-- clone action, trash action
 
 minor issues
 - can't resize styles panel

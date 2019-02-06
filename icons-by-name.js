@@ -11,7 +11,19 @@ const h = require('mutant/html-element')
 module.exports = function(ssb, config) {
   const resolvePrototypes = ResolvePrototypes(ssb)
   const renderImage = Images(ssb, {
-    prototypes: config.tre.prototypes
+    prototypes: config.tre.prototypes,
+    renderCustomElement: ({src, width, height, ctx}) => {
+      const o = {
+        src, width, height,
+        title: ctx.title || '',
+      }
+      if (ctx.action) {
+        o['ev-click'] = e => {
+          ctx.action(e, ctx)
+        }
+      }
+      return h('img.icon', o)
+    }
   })
   const icons = MutantArray()
   const o = {sync: true, live: true}
@@ -25,7 +37,6 @@ module.exports = function(ssb, config) {
 
   return function(name, ctx) {
     return computed(resolved, icons => {
-      console.log('icons', icons)
       const kv = icons.find(kv => kv && kv.value.content.name == name)
       if (!kv) return []
       return renderImage(kv, ctx)

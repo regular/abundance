@@ -33,20 +33,51 @@ module.exports = function(ssb, config, opts) {
     importer,
     skipFirstLevel: true,
     primarySelection,
-    details: (kv, ctx) => {
+    prolog: (kv, ctx) => {
       if (!kv) return []
-      const hasProto = kv.meta && kv.meta["prototype-chain"]
+      const meta = kv.meta
       return [
         h('div.indicators', [ 
-          hasProto ? iconByName('gift') : [],
-          iconByName('git branch', {alt: 'Node has multiple heads'}),
-          iconByName('alert', {alt: 'Node has incomplete history'}),
-        ]),
+          meta && meta["prototype-chain"] ? iconByName('gift', {title: 'Node has a prototype'}) : [],
+          meta && meta.forked ? iconByName('git branch', {title: 'Node has multiple heads'}) : [],
+          meta && meta.incomplete ? iconByName('alert', {title: 'Node has incomplete history'}) : [],
+          meta && meta.change_requests ? iconByName('notifications', {title: 'Change requests'}) : []
+        ])
+      ]
+    },
+    details: (kv, ctx) => {
+      if (!kv) return []
+      return [
         h('div.actions', [ 
-          iconByName('add circle outline', {alt: 'add child node'}),
-          iconByName('albums', {alt: 'clone'}),
-          iconByName('trash', {alt: 'move to trash'}),
-          iconByName('more', {alt: 'more ...'})
+          //iconByName('add circle outline', {title: 'Add child node'}),
+          iconByName('albums', {
+            title: 'Clone',
+            action: (e, ctx) => {
+              e.preventDefault()
+              const content = Object.assign({}, kv.value.content)
+              delete content.revisionRoot
+              delete content.revisionBranch
+              content.name = `Copy of ${content.name}`
+              console.log('Cloning', content)
+              ssb.publish(content, (err, msg) => {
+                if (err) return console.error(err.message)
+                console.log('cloned. New message:', msg)
+              })
+            }
+          }),
+          iconByName('trash', {
+            title: 'Move to trash',
+            action: (e, ctx) => {
+              e.preventDefault()
+              ssb.revisions.patch(kv.key, content => {
+                content.branch = config.tre.branches.trash
+              }, (err, msg) => {
+                if (err) return console.error(err.message)
+                console.log('moved to trash', msg)
+              })
+            }
+          }),
+          //iconByName('more', {title: 'more ...'})
         ])
       ]
     }
