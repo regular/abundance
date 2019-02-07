@@ -190,6 +190,12 @@ function styles() {
     .abundance {
       position: relative;
     }
+    .abundance-sidebar {
+      height: 100%;
+    }
+    .tre-style-panel {
+      height: 100%;
+    }
     .abundance.viewmode-overlay > .abundance-ui {
       opacity: 0.7;
       position: absolute;

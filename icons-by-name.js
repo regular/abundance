@@ -22,7 +22,7 @@ module.exports = function(ssb, config) {
           ctx.action(e, ctx)
         }
       }
-      return h('img.icon', o)
+      return h('img.tre-image-thumbnail', o)
     }
   })
   const icons = MutantArray()
