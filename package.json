@@ -33,8 +33,7 @@
     },
     "importers": {
       "tre-images": true,
-      "tre-fonts": true,
-      "tre-stylesheets": true
+      "tre-fonts": true
     },
     "files": {
       "svg": {
@@ -48,20 +47,6 @@
         "path": "assets/beaver.jpg",
         "content": {
           "branch": "%images",
-          "root": "%root"
-        }
-      },
-      "base-css": {
-        "path": "assets/base.css",
-        "content": {
-          "branch": "%stylesheets",
-          "root": "%root"
-        }
-      },
-      "finder-css": {
-        "path": "assets/finder.css",
-        "content": {
-          "branch": "%stylesheets",
           "root": "%root"
         }
       },
