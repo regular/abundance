@@ -11,10 +11,10 @@
         "root": "%root"
       }
     },
-    "pane.css": {
-      "path": "assets/css/pane.css",
+    "panes.css": {
+      "path": "assets/css/panes.css",
       "content": {
-        "name": "Pane",
+        "name": "Panes",
         "branch": "%stylesheets",
         "root": "%root"
       }
