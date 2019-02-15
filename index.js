@@ -27,7 +27,13 @@ module.exports = function(ssb, config, opts) {
     return watchMerged(c.revisionRoot || kv.key)
   })
 
-  const renderStylePanel = StylePanel(ssb)
+  function isIgnored(kv) {
+    console.log('conf tre', config.tre)
+    if (!kv) return false
+    return kv.value.content.branch == config.tre.branches.trash
+  }
+
+  const renderStylePanel = StylePanel(ssb, {isIgnored})
   const iconByName = Icons(ssb, config)
   const renderFinder = Finder(ssb, {
     importer,
