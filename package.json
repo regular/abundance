@@ -1,6 +1,6 @@
 {
   "name": "abundance",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "a CMS based on tre",
   "main": "index.js",
   "scripts": {
