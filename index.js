@@ -10,6 +10,7 @@ const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
 const RenderFonts = require('./render-fonts')
 const MultiEditor = require('tre-multi-editor')
+const Webapps = require('tre-webapps')
 const Icons = require('./icons-by-name')
 
 module.exports = function(ssb, config, opts) {
@@ -88,6 +89,7 @@ module.exports = function(ssb, config, opts) {
       ]
     }
   })
+  const renderWebapp = Webapps(ssb)
   const renderMultiEditor = MultiEditor(ssb, opts)
 
   const where = Value('editor')
@@ -123,6 +125,22 @@ module.exports = function(ssb, config, opts) {
     } 
   }
 
+  function renderTopBar() {
+    const bootMsg = Value()
+    const bootRev = config.bootMsgRevision
+    if (bootRev) ssb.get(bootRev, (err, value) => {
+      if (err) return console.error(err.message)
+      bootMsg.set({key: bootRev, value})
+    }) 
+    return h('.abundance-topbar', [
+      computed(bootMsg, kv => {
+        if (!bootRev) return h('div.dev', 'dev version')
+        if (!kv) return
+        return renderWebapp(kv, {where: 'status'})
+      })
+    ])
+  }
+
   function renderSidebar() {
     return h('.abundance-sidebar', {
     }, [
@@ -149,19 +167,23 @@ module.exports = function(ssb, config, opts) {
     h('.abundance-ui', {
       style: { display: whenVisible('ui', 'block', 'none') }
     }, [
-      makeSplitPane({horiz: true}, [
-        makePane('25%', [renderSidebar()]),
+      makeSplitPane({horiz: false}, [
+        makePane('4em', [renderTopBar()]),
         makeDivider(),
-        makePane('70%',/* {
-          style: {opacity: whenVisible('ri', 1, 0)}
-        },*/ [
-          whenVisible('fs', renderStage(), []),
-          h('div.abundance-editor', {
-            style: {display: whenVisible('ed', 'block',  'none')}
-          }, computed(renderFinder.primarySelectionObs, kv => {
-            if (!kv) return []
-            return renderMultiEditor(kv, {render})
-          }))
+        makeSplitPane({horiz: true}, [
+          makePane('25%', [renderSidebar()]),
+          makeDivider(),
+          makePane('70%',/* {
+            style: {opacity: whenVisible('ri', 1, 0)}
+          },*/ [
+            whenVisible('fs', renderStage(), []),
+            h('div.abundance-editor', {
+              style: {display: whenVisible('ed', 'block',  'none')}
+            }, computed(renderFinder.primarySelectionObs, kv => {
+              if (!kv) return []
+              return renderMultiEditor(kv, {render})
+            }))
+          ])
         ])
       ])
     ])
