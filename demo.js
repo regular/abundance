@@ -10,6 +10,7 @@ const Images = require('tre-images')
 const Fonts = require('tre-fonts')
 const Stylesheets = require('tre-stylesheets')
 const Folders = require('tre-folders')
+const Stations = require('./station-renderer')
 
 const Icons = require('./icons-by-name')
 
@@ -39,6 +40,9 @@ client( (err, ssb, config) => {
     prototypes,
     renderTile
   })
+  const renderStation = Stations(ssb, {
+    renderEntry: render
+  })
 
   const iconByName = Icons(ssb, config)
 
@@ -47,6 +51,7 @@ client( (err, ssb, config) => {
     .use(renderFont)
     .use(renderStylesheet)
     .use(renderFolder)
+    .use(renderStation)
     .use(function(kv, ctx) {
       if (!kv) return
       if (kv.value.content.type !== 'folder') return

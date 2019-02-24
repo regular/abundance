@@ -25,7 +25,7 @@ module.exports = function(ssb, config, opts) {
   const mergedKvObs = computed(primarySelection, kv => {
     const c = content(kv)
     if (!c) return
-    return watchMerged(c.revisionRoot || kv.key)
+    return watchMerged(c.revisionRoot || kv.key, {allowAllAuthors: true})
   })
 
   function isIgnored(kv) {
@@ -114,7 +114,7 @@ module.exports = function(ssb, config, opts) {
     return h('.abundance-stage', {}, [
       computed(mergedKvObs, kv => {
         if (!kv) return []
-        return render(kv)
+        return render(kv, {where: 'stage'})
       })
     ])
   }
