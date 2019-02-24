@@ -12,6 +12,7 @@ const RenderFonts = require('./render-fonts')
 const MultiEditor = require('tre-multi-editor')
 const Webapps = require('tre-webapps')
 const Icons = require('./icons-by-name')
+const RoleSelector = require('./role-selector')
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
@@ -90,6 +91,7 @@ module.exports = function(ssb, config, opts) {
     }
   })
   const renderWebapp = Webapps(ssb)
+  const renderRoleSelector = RoleSelector(ssb)
   const renderMultiEditor = MultiEditor(ssb, opts)
 
   const where = Value('editor')
@@ -137,7 +139,8 @@ module.exports = function(ssb, config, opts) {
         if (!bootRev) return h('div.dev', 'dev version')
         if (!kv) return
         return renderWebapp(kv, {where: 'status'})
-      })
+      }),
+      renderRoleSelector(mode, primarySelection)
     ])
   }
 
