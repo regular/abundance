@@ -30,7 +30,6 @@ module.exports = function(ssb, config, opts) {
   })
 
   function isIgnored(kv) {
-    console.log('conf tre', config.tre)
     if (!kv) return false
     return kv.value.content.branch == config.tre.branches.trash
   }
