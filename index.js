@@ -61,7 +61,7 @@ module.exports = function(ssb, config, opts) {
             title: 'Clone',
             action: (e, ctx) => {
               e.preventDefault()
-              const content = Object.assign({}, kv.value.content)
+              const content = Object.assign({}, unmergeKv(kv).value.content)
               delete content.revisionRoot
               delete content.revisionBranch
               content.name = `Copy of ${content.name}`
