@@ -7,6 +7,7 @@ const Abundance = require('.')
 require('brace/theme/solarized_dark')
 
 const Images = require('tre-images')
+const Videos = require('tre-videos')
 const Fonts = require('tre-fonts')
 const Stylesheets = require('tre-stylesheets')
 const Folders = require('tre-folders')
@@ -19,6 +20,7 @@ client( (err, ssb, config) => {
 
   const importer = Importer(ssb, config)
           .use(Images)
+          .use(Videos)
           .use(Fonts)
           .use(Stylesheets)
           .use(Folders)
@@ -28,6 +30,9 @@ client( (err, ssb, config) => {
   const renderStack = TwoRenderStacks(ssb)
   const {render, renderTile} = renderStack
   const renderImage = Images(ssb, {
+    prototypes
+  })
+  const renderVideo = Videos(ssb, {
     prototypes
   })
   const renderFont = Fonts(ssb, {
@@ -48,6 +53,7 @@ client( (err, ssb, config) => {
 
   renderStack
     .use(renderImage)
+    .use(renderVideo)
     .use(renderFont)
     .use(renderStylesheet)
     .use(renderFolder)
