@@ -13,6 +13,7 @@ const MultiEditor = require('tre-multi-editor')
 const Webapps = require('tre-webapps')
 const Icons = require('./icons-by-name')
 const RoleSelector = require('./role-selector')
+const LanguageSwitch = require('./language-switch')
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
@@ -93,6 +94,8 @@ module.exports = function(ssb, config, opts) {
   const renderRoleSelector = RoleSelector(ssb)
   const renderMultiEditor = MultiEditor(ssb, opts)
 
+  const renderLanguageSwitch = LanguageSwitch(ssb, config)
+
   const where = Value('editor')
 
   const modes = [   //    splitpane?  right?    editor?    fullscreen?
@@ -139,7 +142,11 @@ module.exports = function(ssb, config, opts) {
         if (!kv) return
         return renderWebapp(kv, {where: 'status'})
       }),
-      renderRoleSelector(mode, primarySelection)
+      renderRoleSelector(mode, primarySelection),
+      renderLanguageSwitch(),
+      computed(renderLanguageSwitch.currentLanguageObs, l => {
+        return h(`span.emoji.emoji-${l}`)
+      })
     ])
   }
 
