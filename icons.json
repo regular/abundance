@@ -11,7 +11,63 @@
     }
   },
   "files": {
-    "icon-images": {
+    "icon-gift": {
+      "path": "assets/icons/gift.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-git-branch": {
+      "path": "assets/icons/git-branch.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-alert": {
+      "path": "assets/icons/alert.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-notifications": {
+      "path": "assets/icons/notifications.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-add-circle-outline": {
+      "path": "assets/icons/add-circle-outline.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-albums": {
+      "path": "assets/icons/albums.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-trash": {
+      "path": "assets/icons/trash.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-more": {
+      "path": "assets/icons/more.svg",
+      "content": {
+        "branch": "%icons",
+        "root": "%root"
+      }
+    },
+    "icon-folder": {
       "path": "assets/icons/folder.svg",
       "content": {
         "branch": "%icons",
