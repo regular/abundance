@@ -11,7 +11,7 @@ module.exports = function(ssb, config) {
 
   const configObs = trackConfig(config)
   const languagesObs = computed(configObs, c => {
-    return c && c.tre && c.tre.languages
+    return c && c.tre && c.tre.languages || []
   })
   const currentObs = Value()
 
@@ -35,7 +35,7 @@ module.exports = function(ssb, config) {
   }
   ret.languagesObs = languagesObs
   ret.currentLanguageObs = computed([languagesObs, currentObs], (langs, c) =>{
-    return c || langs[0] || computed.NO_CHANGE
+    return (c && langs.includes(c)) || langs[0] || computed.NO_CHANGE
   })
   return ret
 
@@ -48,6 +48,7 @@ module.exports = function(ssb, config) {
         const revRoot = value.content.revisionRoot || bootKey
         const bootKvObs = watchMerged(revRoot, {allowAllAuthors: false})
         const configObs = computed(bootKvObs, kv => {
+          debug('boot msg changed to %O', kv)
           return kv && kv.value.content.config || computed.NO_CHANGE
         })
         debug('Tracking config of %s', revRoot)

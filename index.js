@@ -95,6 +95,7 @@ module.exports = function(ssb, config, opts) {
   const renderMultiEditor = MultiEditor(ssb, opts)
 
   const renderLanguageSwitch = LanguageSwitch(ssb, config)
+  const {languagesObs, currentLanguageObs} = renderLanguageSwitch
 
   const where = Value('editor')
 
@@ -118,7 +119,11 @@ module.exports = function(ssb, config, opts) {
     return h('.abundance-stage', {}, [
       computed(mergedKvObs, kv => {
         if (!kv) return []
-        return render(kv, {where: 'stage'})
+        return render(kv, {
+          where: 'stage',
+          languagesObs,
+          currentLanguageObs
+        })
       })
     ])
   }
@@ -144,7 +149,7 @@ module.exports = function(ssb, config, opts) {
       }),
       renderRoleSelector(mode, primarySelection),
       renderLanguageSwitch(),
-      computed(renderLanguageSwitch.currentLanguageObs, l => {
+      computed(currentLanguageObs, l => {
         return h(`span.emoji.emoji-${l}`)
       })
     ])
@@ -190,7 +195,11 @@ module.exports = function(ssb, config, opts) {
               style: {display: whenVisible('ed', 'block',  'none')}
             }, computed(renderFinder.primarySelectionObs, kv => {
               if (!kv) return []
-              return renderMultiEditor(kv, {render})
+              return renderMultiEditor(kv, {
+                render,
+                languagesObs,
+                currentLanguageObs
+              })
             }))
           ])
         ])
