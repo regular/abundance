@@ -37,6 +37,9 @@ module.exports = function(ssb, config) {
   ret.currentLanguageObs = computed([languagesObs, currentObs], (langs, c) =>{
     return (c && langs.includes(c)) ? c : langs[0] || computed.NO_CHANGE
   })
+  ret.currentLanguageObs.set = function(x) {
+    currentObs.set(x)
+  }
   return ret
 
   function trackConfig(config) {
