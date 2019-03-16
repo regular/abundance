@@ -35,7 +35,7 @@ module.exports = function(ssb, config) {
   }
   ret.languagesObs = languagesObs
   ret.currentLanguageObs = computed([languagesObs, currentObs], (langs, c) =>{
-    return (c && langs.includes(c)) || langs[0] || computed.NO_CHANGE
+    return (c && langs.includes(c)) ? c : langs[0] || computed.NO_CHANGE
   })
   return ret
 
