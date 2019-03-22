@@ -15,6 +15,8 @@ module.exports = function(ssb, opts) {
     const {stage, entry} = content
     if (!stage || !entry) return
 
+    const {languagesObs, currentLanguageObs} = ctx
+
     return h('.tre-station-container', {
       classList: content.classes || [],
     }, [
@@ -29,7 +31,11 @@ module.exports = function(ssb, opts) {
         computed(watchMerged(entry, {allowAllAuthors: true}), kvm => {
           if (!kvm) return []
           console.warn('renderEntry', kvm)
-          return renderEntry(kvm, {where: ctx.where}) || []
+          return renderEntry(kvm, {
+            where: ctx.where,
+            languagesObs,
+            currentLanguageObs
+          }) || []
         })
       ])
     ])
