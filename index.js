@@ -14,6 +14,7 @@ const Webapps = require('tre-webapps')
 const Icons = require('./icons-by-name')
 const RoleSelector = require('./role-selector')
 const LanguageSwitch = require('./language-switch')
+const IdleControl = require('./idle-control')
 
 module.exports = function(ssb, config, opts) {
   const {importer, render} = opts
@@ -96,6 +97,7 @@ module.exports = function(ssb, config, opts) {
 
   const renderLanguageSwitch = LanguageSwitch(ssb, config)
   const {languagesObs, currentLanguageObs} = renderLanguageSwitch
+  const renderIdleControl = IdleControl()
 
   const where = Value('editor')
 
@@ -151,7 +153,8 @@ module.exports = function(ssb, config, opts) {
       renderLanguageSwitch(),
       computed(currentLanguageObs, l => {
         return h(`span.emoji.emoji-${l}`)
-      })
+      }),
+      renderIdleControl()
     ])
   }
 
