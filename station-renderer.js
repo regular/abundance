@@ -15,7 +15,7 @@ module.exports = function(ssb, opts) {
     const {stage, entry} = content
     if (!stage || !entry) return
 
-    const {languagesObs, currentLanguageObs} = ctx
+    const {languagesObs, currentLanguageObs, idleTimer} = ctx
 
     return h('.tre-station-container', {
       classList: content.classes || [],
@@ -34,7 +34,8 @@ module.exports = function(ssb, opts) {
           return renderEntry(kvm, {
             where: ctx.where,
             languagesObs,
-            currentLanguageObs
+            currentLanguageObs,
+            idleTimer
           }) || []
         })
       ])

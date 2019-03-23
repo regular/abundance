@@ -25,6 +25,7 @@ module.exports = function(opts) {
     isIdleObs.set(true)
   }
   function reset() {
+    if (paused) return
     console.log('reset')
     setSeconds(seconds)
   }

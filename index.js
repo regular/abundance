@@ -17,7 +17,8 @@ const LanguageSwitch = require('./language-switch')
 const IdleControl = require('./idle-control')
 
 module.exports = function(ssb, config, opts) {
-  const {importer, render} = opts
+  const {importer} = opts
+  const _render = opts.render || (function() {})
 
   styles()
   const renderFonts = RenderFonts(ssb, config)
@@ -97,7 +98,7 @@ module.exports = function(ssb, config, opts) {
 
   const renderLanguageSwitch = LanguageSwitch(ssb, config)
   const {languagesObs, currentLanguageObs} = renderLanguageSwitch
-  const renderIdleControl = IdleControl({paused: true})
+  const renderIdleControl = IdleControl({paused: true, seconds: 30})
 
   const where = Value('editor')
 
@@ -109,7 +110,7 @@ module.exports = function(ssb, config, opts) {
   ]
   const mode = Value(0)
 
-  window.addEventListener('keydown', (e)=>{
+  window.addEventListener('keydown', e =>{
     if (e.key === 'Tab' && e.shiftKey) {
       mode.set( (mode() + 1) % modes.length)
       console.log('new view mode:', modes[mode()].name)
@@ -117,14 +118,28 @@ module.exports = function(ssb, config, opts) {
     }
   })
 
+  const idleControls = renderIdleControl()
+  const {idleTimer} = idleControls
+  window.addEventListener('click', e =>{
+    idleTimer.reset()
+  })
+
+  const commonContext = {
+    languagesObs,
+    currentLanguageObs,
+    idleTimer 
+  }
+
+  function render(kv, ctx) {
+    return _render(kv, Object.assign({}, commonContext, ctx))
+  }
+
   function renderStage() {
     return h('.abundance-stage', {}, [
       computed(mergedKvObs, kv => {
         if (!kv) return []
         return render(kv, {
-          where: 'stage',
-          languagesObs,
-          currentLanguageObs
+          where: 'stage'
         })
       })
     ])
@@ -154,7 +169,7 @@ module.exports = function(ssb, config, opts) {
       computed(currentLanguageObs, l => {
         return h(`span.emoji.emoji-${l}`)
       }),
-      renderIdleControl()
+      idleControls 
     ])
   }
 
@@ -198,11 +213,9 @@ module.exports = function(ssb, config, opts) {
               style: {display: whenVisible('ed', 'block',  'none')}
             }, computed(renderFinder.primarySelectionObs, kv => {
               if (!kv) return []
-              return renderMultiEditor(kv, {
+              return renderMultiEditor(kv, Object.assign({}, {
                 render,
-                languagesObs,
-                currentLanguageObs
-              })
+              }, commonContext))
             }))
           ])
         ])

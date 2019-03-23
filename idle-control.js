@@ -26,7 +26,7 @@ module.exports = function(opts) {
       spinner.setProgress(progress)
     })
     
-    return h('.abundance-idle-control', {
+    const el = h('.abundance-idle-control', {
       hooks: [el => el => {
         idleTimer.abort()
         abort()
@@ -66,5 +66,7 @@ module.exports = function(opts) {
         ])
       )
     ])
+    el.idleTimer = idleTimer
+    return el
   }
 }
