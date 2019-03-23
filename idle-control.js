@@ -12,8 +12,8 @@ module.exports = function(opts) {
 
   return function() {
     const idleTimer = IdleTimeout(opts)
-    const pausedObs = Value(!!opts.paused)
-    if (pausedObs()) idleTimer.pause()
+    if (opts.paused) idleTimer.pause()
+    const ourPausedObs = Value(!!opts.paused)
 
     const spinner = Spinner({
       color: 'yellow',
@@ -35,13 +35,14 @@ module.exports = function(opts) {
       spinner,
       h('input', {
         type: 'checkbox',
-        checked: pausedObs,
+        checked: ourPausedObs,
         'ev-change': e => {
           setTimeout(()=>{
-            pausedObs.set(e.target.checked)
-            if (pausedObs()) {
+            if (e.target.checked) {
+              ourPausedObs.set(true)
               idleTimer.pause()
             } else {
+              ourPausedObs.set(false)
               idleTimer.resume()
             }
           },0)
@@ -50,7 +51,7 @@ module.exports = function(opts) {
       when(idleTimer.isIdleObs,
         h('.idle', 'idle'),
         h('.msg', [
-          when(pausedObs,
+          when(idleTimer.pausedObs,
             h('span', '(paused)'),
             [
               h('span', {

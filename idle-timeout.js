@@ -1,9 +1,11 @@
 const Value = require('mutant/value')
+const computed = require('mutant/computed')
 
 module.exports = function(opts) {
   opts = opts || {}
   let seconds
-  let timerId, intervalId, started, paused = 0
+  let timerId, intervalId, started
+  const paused = Value(0)
   const secondsLeftObs = Value()
   const isIdleObs = Value(false)
   const updateInterval = opts.updateInterval || 250
@@ -21,22 +23,23 @@ module.exports = function(opts) {
   }
 
   function onTimeout() {
-    if (paused) return
+    if (paused()) return
     isIdleObs.set(true)
   }
   function reset() {
-    if (paused) return
+    if (paused()) return
     console.log('reset')
     setSeconds(seconds)
   }
   function pause() {
     console.log('pause')
-    paused++
+    paused.set(paused() + 1)
     abort()
   }
   function resume() {
-    console.log('resume')
-    if (--paused == 0) reset()
+    let i = paused() - 1
+    paused.set(i)
+    if (i == 0) reset()
   }
   function update() {
     const ms_passed = Date.now() - started
@@ -57,6 +60,7 @@ module.exports = function(opts) {
     resume,     // call after playback ends
     secondsLeftObs, // number of seconds remaining
     isIdleObs,   // true if timeout occured (use reset() to restart)
+    pausedObs: computed(paused, p => p !==0),
     abort     // call to shut down
   }
 }
