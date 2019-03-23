@@ -97,7 +97,7 @@ module.exports = function(ssb, config, opts) {
 
   const renderLanguageSwitch = LanguageSwitch(ssb, config)
   const {languagesObs, currentLanguageObs} = renderLanguageSwitch
-  const renderIdleControl = IdleControl()
+  const renderIdleControl = IdleControl({paused: true})
 
   const where = Value('editor')
 
