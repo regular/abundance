@@ -1,9 +1,13 @@
 const computed = require('mutant/computed')
+const watch = require('mutant/watch')
+const Value = require('mutant/value')
 const WatchMerged = require('tre-prototypes')
+const WatchHeads = require('tre-watch-heads')
 const h = require('mutant/html-element')
 
 module.exports = function(ssb, opts) {
   opts = opts || {}
+  const watchHeads = WatchHeads(ssb)
   const watchMerged = WatchMerged(ssb)
   const {renderEntry} = opts
 
@@ -12,23 +16,43 @@ module.exports = function(ssb, opts) {
     const content = kv && kv.value.content
     if (!content) return
     if (content.type !== 'station') return
-    const {stage, entry} = content
-    if (!stage || !entry) return
+    const previewObs = ctx.previewObs || Value(kv)
 
+    const contentObs = computed(previewObs, kv => {
+      return kv && kv.value && kv.value.content || computed.NO_CHANGE
+    })
+
+    const stageObs = computed(contentObs, c => c.stage)
+    const entryKeyObs = computed(contentObs, c => c.entry)
+    const timeoutObs = computed(contentObs, c => c.idle && c.idle.timeout || computed.NO_CHANGE)
+    console.warn('ctx', ctx)
     const {languagesObs, currentLanguageObs, idleTimer} = ctx
 
+    const abort = watch(timeoutObs, seconds => {
+      if (seconds && idleTimer) {
+        console.warn('Setting idle timeout to', seconds)
+        idleTimer.setSeconds(seconds)
+      }
+    })
+
+    const entryObs = computed(entryKeyObs, k => {
+      if (!k) return computed.NO_CHANGE
+      return watchHeads(k, {allowAllAuthors: true})
+    })
+
     return h('.tre-station-container', {
-      classList: content.classes || [],
+      hooks: [el => abort],
+      classList: computed(contentObs, c => c.classes || []),
     }, [
       h('.tre-station', {
-        classList: content.classes || [],
+        classList: computed(contentObs, c => c.classes || []),
         style: {
-          width: `${stage.width}px`,
-          height: `${stage.height}px`,
-          transform: content.stage.transform
+          width: computed(stageObs, stage => `${stage.width}px`),
+          height: computed(stageObs, stage => `${stage.height}px`),
+          trnsform: computed(stageObs, stage => stage.transform)
         }
       }, [
-        computed(watchMerged(entry, {allowAllAuthors: true}), kvm => {
+        computed(watchMerged(entryObs, {allowAllAuthors: true}), kvm => {
           if (!kvm) return []
           console.warn('renderEntry', kvm)
           return renderEntry(kvm, {
