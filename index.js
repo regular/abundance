@@ -6,6 +6,7 @@ const WatchMerged = require('tre-prototypes')
 const {makePane, makeDivider, makeSplitPane} = require('tre-split-pane')
 const h = require('mutant/html-element')
 const Value = require('mutant/value')
+const watch = require('mutant/watch')
 const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
 const RenderFonts = require('./render-fonts')
@@ -16,7 +17,6 @@ const RoleSelector = require('./role-selector')
 const LanguageSwitch = require('./language-switch')
 const IdleControl = require('./idle-control')
 const UAParser = require('ua-parser-js')
-
 
 const browserVersion = UAParser().browser
 
@@ -96,7 +96,6 @@ module.exports = function(ssb, config, opts) {
       ]
     }
   })
-  const renderWebapp = Webapps(ssb)
   const renderRoleSelector = RoleSelector(ssb)
   const renderMultiEditor = MultiEditor(ssb, opts)
 
@@ -126,6 +125,29 @@ module.exports = function(ssb, config, opts) {
   const {idleTimer} = idleControls
   window.addEventListener('click', e =>{
     idleTimer.reset()
+  })
+
+  const isKiosk = computed([mode, primarySelection], (mode, kvm) =>{
+    const isStation = kvm && kvm.value && kvm.value.content && kvm.value.content.type == 'station'
+    return isStation && mode == 2
+  })
+
+  const abort = watch(isKiosk, kiosk => {
+    if (kiosk) {
+      console.log('KIOSK mode')
+      if (idleControls.pausedObs()) {
+        idleControls.pausedObs.set(false)
+        idleTimer.resume()
+      }
+    }
+  })
+
+  const canAutoUpdate = computed([isKiosk, idleTimer.isIdleObs], (kiosk, idle) =>{
+    return kiosk && idle
+  })
+
+  const renderWebapp = Webapps(ssb, {
+    canAutoUpdate
   })
 
   const commonContext = {
@@ -201,6 +223,7 @@ module.exports = function(ssb, config, opts) {
   }
 
   return h('.abundance', {
+    hooks: [el => abort],
     classList: computed(mode, mode => `viewmode-${[modes[mode].name]}`)
   }, [
     whenVisible('ri', [], whenVisible('fs', renderStage(), [])),

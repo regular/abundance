@@ -21,8 +21,7 @@ module.exports = function(opts) {
       radius: 8
     })
 
-    const abort = watch(idleTimer.secondsLeftObs, s => {
-      const progress = s / opts.seconds
+    const abort = watch(idleTimer.progressObs, progress => {
       spinner.setProgress(progress)
     })
     
@@ -32,7 +31,7 @@ module.exports = function(opts) {
         abort()
       }]
     }, [
-      spinner,
+      computed(idleTimer.pausedObs, paused => paused ? [] : spinner),
       h('input', {
         type: 'checkbox',
         checked: ourPausedObs,
@@ -68,6 +67,7 @@ module.exports = function(opts) {
       )
     ])
     el.idleTimer = idleTimer
+    el.pausedObs = ourPausedObs
     return el
   }
 }

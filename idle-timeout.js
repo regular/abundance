@@ -7,6 +7,7 @@ module.exports = function(opts) {
   let timerId, intervalId, started
   const paused = Value(0)
   const secondsLeftObs = Value()
+  const progressObs = Value()
   const isIdleObs = Value(false)
   const updateInterval = opts.updateInterval || 250
 
@@ -16,6 +17,7 @@ module.exports = function(opts) {
     seconds = s
     started = Date.now()
     secondsLeftObs.set(s)
+    progressObs.set(0)
     isIdleObs.set(false)
     abort()
     timerId = setTimeout(onTimeout, seconds * 1000)
@@ -42,8 +44,10 @@ module.exports = function(opts) {
     if (i == 0) reset()
   }
   function update() {
+    if (paused()) return
     const ms_passed = Date.now() - started
     secondsLeftObs.set(seconds - ms_passed / 1000.0)
+    progressObs.set(ms_passed / seconds / 1000.0)
   }
 
   function abort() {
@@ -59,6 +63,7 @@ module.exports = function(opts) {
     pause,      // call when start to play media (no interaction expected for a while)
     resume,     // call after playback ends
     secondsLeftObs, // number of seconds remaining
+    progressObs, // 0 ... 1, 1 == idle
     isIdleObs,   // true if timeout occured (use reset() to restart)
     pausedObs: computed(paused, p => p !==0),
     abort     // call to shut down
