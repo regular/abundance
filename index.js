@@ -15,6 +15,10 @@ const Icons = require('./icons-by-name')
 const RoleSelector = require('./role-selector')
 const LanguageSwitch = require('./language-switch')
 const IdleControl = require('./idle-control')
+const UAParser = require('ua-parser-js')
+
+
+const browserVersion = UAParser().browser
 
 module.exports = function(ssb, config, opts) {
   const {importer} = opts
@@ -164,6 +168,10 @@ module.exports = function(ssb, config, opts) {
         if (!kv) return
         return renderWebapp(kv, {where: 'status'})
       }),
+      h('.browser-version', [
+        h('span.name', browserVersion.name),
+        h('span.version', browserVersion.version),
+      ]),
       renderRoleSelector(mode, primarySelection),
       renderLanguageSwitch(),
       computed(currentLanguageObs, l => {

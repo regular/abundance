@@ -86,6 +86,7 @@
     "tre-split-pane": "^1.0.1",
     "tre-style-panel": "^1.2.0",
     "tre-stylesheets": "^1.2.0",
-    "tre-webapps": "^1.0.1"
+    "tre-webapps": "^1.0.1",
+    "ua-parser-js": "^0.7.19"
   }
 }
