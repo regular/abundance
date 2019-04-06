@@ -178,6 +178,19 @@ module.exports = function(ssb, config, opts) {
   }
 
   function renderTopBar() {
+    const address = Value(h('span', 'getting address ...'))
+    ssb.getAddress((err, addr)=>{
+      if (err) {
+        address.set(h('span.error', err.message))
+      } else {
+        const [schema, ip, port, id] = addr.split(':')
+        address.set(h(`.${schema}`, [
+          h('.ip', ip),
+          h('.port', port),
+          h('.id', id),
+        ]))
+      } 
+    })
     const bootMsg = Value()
     const bootRev = config.bootMsgRevision
     if (bootRev) ssb.get(bootRev, (err, value) => {
@@ -199,7 +212,8 @@ module.exports = function(ssb, config, opts) {
       computed(currentLanguageObs, l => {
         return h(`span.emoji.emoji-${l}`)
       }),
-      idleControls 
+      idleControls,
+      h('.sbot-address', address)
     ])
   }
 
