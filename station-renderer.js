@@ -22,9 +22,9 @@ module.exports = function(ssb, opts) {
       return kv && kv.value && kv.value.content || computed.NO_CHANGE
     })
 
-    const stageObs = computed(contentObs, c => c.stage)
-    const entryKeyObs = computed(contentObs, c => c.entry)
-    const timeoutObs = computed(contentObs, c => c.idle && c.idle.timeout || computed.NO_CHANGE)
+    const stageObs = computed(contentObs, c => c && c.stage)
+    const entryKeyObs = computed(contentObs, c => c && c.entry)
+    const timeoutObs = computed(contentObs, c => c && c.idle && c.idle.timeout || computed.NO_CHANGE)
     console.warn('ctx', ctx)
     const {languagesObs, currentLanguageObs, idleTimer} = ctx
 
@@ -47,9 +47,9 @@ module.exports = function(ssb, opts) {
       h('.tre-station', {
         classList: computed(contentObs, c => c.classes || []),
         style: {
-          width: computed(stageObs, stage => `${stage.width}px`),
-          height: computed(stageObs, stage => `${stage.height}px`),
-          trnsform: computed(stageObs, stage => stage.transform)
+          width: computed(stageObs, stage => `${stage && stage.width || 1920}px`),
+          height: computed(stageObs, stage => `${stage && stage.height || 1080}px`),
+          trnsform: computed(stageObs, stage => stage && stage.transform)
         }
       }, [
         computed(watchMerged(entryObs, {allowAllAuthors: true}), kvm => {
