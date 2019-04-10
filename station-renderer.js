@@ -25,7 +25,6 @@ module.exports = function(ssb, opts) {
     const stageObs = computed(contentObs, c => c && c.stage)
     const entryKeyObs = computed(contentObs, c => c && c.entry)
     const timeoutObs = computed(contentObs, c => c && c.idle && c.idle.timeout || computed.NO_CHANGE)
-    console.warn('ctx', ctx)
     const {languagesObs, currentLanguageObs, idleTimer} = ctx
 
     const abort = watch(timeoutObs, seconds => {
@@ -54,7 +53,7 @@ module.exports = function(ssb, opts) {
       }, [
         computed(watchMerged(entryObs, {allowAllAuthors: true}), kvm => {
           if (!kvm) return []
-          console.warn('renderEntry', kvm)
+          console.warn('renderEntry', kvm.key, kvm.value.content.name)
           return renderEntry(kvm, {
             where: ctx.where,
             languagesObs,

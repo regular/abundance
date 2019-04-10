@@ -18,7 +18,6 @@ module.exports = function(ssb, config) {
   const icons = MutantArray()
   const o = {sync: true, live: true}
   const drain = collectMutations(icons, o)
-  console.warn('EMOJI', config.tre.branches)
   pull(
     ssb.revisions.messagesByBranch(config.tre.branches.emoji, o),
     drain
