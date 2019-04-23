@@ -7,6 +7,7 @@ const computed = require('mutant/computed')
 const watch = require('mutant/watch')
 const ResolvePrototypes = require('tre-prototypes')
 const h = require('mutant/html-element')
+const deepEqual = require('deep-equal')
 
 module.exports = function(ssb) {
   const feedId = Value()
@@ -24,7 +25,7 @@ module.exports = function(ssb) {
       ssb.revisions.messagesByType('station', o),
       drain
     )
-    const resolved = MutantMap(stations, resolvePrototypes, {comparer})
+    const resolved = MutantMap(stations, resolvePrototypes, {comparer: deepEqual})
     const withNone = computed(resolved, arr => {
       return [Value({key: '', value: {content: {name: 'None'}}})].concat(arr)
     })
@@ -32,7 +33,7 @@ module.exports = function(ssb) {
     return withNone
   } 
 
-  function trackCurrent() {
+  function trackCurrentRole() {
     const msgs = MutantArray()
     const o = {sync: true, live: true}
     const drain = collectMutations(msgs, o)
@@ -46,38 +47,52 @@ module.exports = function(ssb) {
         return kv && kv.value.content.about == id
       })
       // sort by timestamp
-      const sorted = aboutUs.sort((a,b) => a.value.timestamp - b.value.timestamp)
-      const station = sorted[0] && sorted[0].value.content.station
-      console.warn('current station', station)
+      const sorted = aboutUs.sort((a,b) => b.value.timestamp - a.value.timestamp)
       return sorted[0]
     })
     current.abort = drain.abort
     return current
   } 
 
+  function trackCurrentStation(currentRole) {
+    const currentStation = computed(currentRole, kv =>{
+      if (!kv) return null
+      const station = kv && kv.value.content.station
+      if (!station) {
+        console.warn('Role does not specify a station', kv)
+        return null
+      }
+      return resolvePrototypes(station, {allowAllAuthors: true})
+    }, {
+      //comparer: (a,b) => (a && a.key) == (b && b.key)
+      comparer: (a,b) => {
+        return a == b
+      }
+    })
+    return currentStation
+  }
+
   return function renderSelector(mode, selection) {
     const stations = trackStations()
-    const current = trackCurrent()
+    const currentRole = trackCurrentRole()
+    const currentStation = trackCurrentStation(currentRole)
 
-    const abort = watch(current, kv => {
-      const station = kv && kv.value.content.station
-      if (station) {
+    const abort = currentStation(kv => {
+      console.log('watch station', kv)
+      if (kv) {
         mode.set(2)
-        ssb.revisions.getLatestRevision(station, (err, kv) =>{
-          if (err) return console.error(err.message)
-          selection.set(kv)
-        })
+        selection.set(kv)
       }
     })
 
     return h('select.tre-roles', {
       hooks: [el => el => {
         stations.abort()
-        current.abort()
+        currentRole.abort()
         abort()
       }],
       'ev-change': e => {
-        const kv = current()
+        const kv = currentRole()
         const revisionRoot = kv && kv.value.content.revisionRoot || kv && kv.key
         const revisionBranch = kv && kv.key
         ssb.publish({
@@ -98,28 +113,13 @@ module.exports = function(ssb) {
       const revRoot = computed(kvm, kvm => 
         kvm && kvm.value.content.revisionRoot || kvm && kvm.key
       )
-      const selected = computed([revRoot, current], (r,c) => {
+      const selected = computed([revRoot, currentRole], (r,c) => {
         return c && c.value.content.station == r
       })
       return h('option', {
         value: revRoot,
         selected
       }, name)
-    }, {comparer}))
+    }))
   }
 }
-
-function comparer(a, b) {
-  // NOTE: a and b might be observables 
-  /*
-  It might be beneficial to overall perofrmance to make a slightly deeper comparison of
-  - keys
-  - meta (wihtout prototype-chain)
-  - keys of prototype chain
-
-  It's not enough to just compare akey to b.key because changes in
-  prototypes would slip through.
-  */
-  return a === b
-}
-
