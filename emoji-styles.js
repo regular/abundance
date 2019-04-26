@@ -31,6 +31,7 @@ module.exports = function(ssb, config) {
       hooks: [el=>abort]
     }, computed([resolved, blobPrefix], (kvs, blobPrefix) =>{
       return kvs.map(kv => {
+        if (!kv) return ''
         const name = kv.value.content.name
         const blob = kv.value.content.blob
         return `.emoji.emoji-${name} {
