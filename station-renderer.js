@@ -19,7 +19,7 @@ module.exports = function(ssb, opts) {
     const previewObs = ctx.previewObs || Value(kv)
 
     const contentObs = computed(previewObs, kv => {
-      return kv && kv.value && kv.value.content || computed.NO_CHANGE
+      return kv && kv.value && kv.value.content || {}
     })
 
     const stageObs = computed(contentObs, c => c && c.stage)
