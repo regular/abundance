@@ -240,32 +240,40 @@ module.exports = function(ssb, config, opts) {
     hooks: [el => abort],
     classList: computed(mode, mode => `viewmode-${[modes[mode].name]}`)
   }, [
-    whenVisible('ri', [], whenVisible('fs', renderStage(), [])),
-    h('.abundance-ui', {
-      style: { display: whenVisible('ui', 'block', 'none') }
-    }, [
-      makeSplitPane({horiz: false}, [
-        makePane('4em', [renderTopBar()]),
-        makeDivider(),
-        makeSplitPane({horiz: true}, [
-          makePane('25%', [renderSidebar()]),
+    whenVisible('ri', [], whenVisible('fs', [
+      renderStage(),
+      h('div', {
+        style: {
+          display: 'none'
+        }
+      }, [ renderStylePanel()])
+    ], [])),
+    whenVisible('ui', [
+      h('.abundance-ui', [
+        makeSplitPane({horiz: false}, [
+          makePane('4em', [renderTopBar()]),
           makeDivider(),
-          makePane('70%',/* {
-            style: {opacity: whenVisible('ri', 1, 0)}
-          },*/ [
-            whenVisible('fs', renderStage(), []),
-            h('div.abundance-editor', {
-              style: {display: whenVisible('ed', 'block',  'none')}
-            }, computed(renderFinder.primarySelectionObs, kv => {
-              if (!kv) return []
-              return renderMultiEditor(kv, Object.assign({}, {
-                render,
-              }, commonContext))
-            }))
+          makeSplitPane({horiz: true}, [
+            makePane('25%', [renderSidebar()]),
+            makeDivider(),
+            makePane('70%',/* {
+              style: {opacity: whenVisible('ri', 1, 0)}
+            },*/ [
+              whenVisible('fs', renderStage(), []),
+              h('div.abundance-editor', {
+                style: {display: whenVisible('ed', 'block',  'none')}
+              }, computed(renderFinder.primarySelectionObs, kv => {
+                if (!kv) return []
+                return renderMultiEditor(kv, Object.assign({}, {
+                  render,
+                }, commonContext))
+              }))
+            ])
           ])
         ])
       ])
-    ])
+    ], [])
+    
   ])
 }
 
