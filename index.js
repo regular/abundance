@@ -44,6 +44,8 @@ module.exports = function(ssb, config, opts) {
   const renderStylePanel = StylePanel(ssb, {isIgnored})
   const iconByName = Icons(ssb, config)
   const renderFinder = Finder(ssb, {
+    idle: true,
+    maxTime: 200,
     importer,
     skipFirstLevel: true,
     primarySelection,
