@@ -51,7 +51,10 @@ module.exports = function(ssb, opts) {
           trnsform: computed(stageObs, stage => stage && stage.transform)
         }
       }, [
-        computed(watchMerged(entryObs, {allowAllAuthors: true}), kvm => {
+        computed(watchMerged(entryObs, {
+          allowAllAuthors: true,
+          suppressIntermediate: true
+        }), kvm => {
           if (!kvm) return []
           console.warn('renderEntry', kvm.key, kvm.value.content.name)
           return renderEntry(kvm, {
