@@ -6,6 +6,7 @@ const WatchMerged = require('tre-prototypes')
 const {makePane, makeDivider, makeSplitPane} = require('tre-split-pane')
 const h = require('mutant/html-element')
 const Value = require('mutant/value')
+const MutantArray = require('mutant/array')
 const watch = require('mutant/watch')
 const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
@@ -219,6 +220,12 @@ module.exports = function(ssb, config, opts) {
     ])
   }
 
+  const widgets = MutantArray()
+  function addWidget(name, factory) {
+    widgets.push({name, factory})
+  }
+  addWidget('Stylesheets', renderStylePanel )
+
   function renderSidebar() {
     return h('.abundance-sidebar', {
     }, [
@@ -228,7 +235,14 @@ module.exports = function(ssb, config, opts) {
         ]),
         makeDivider(),
         makePane('50%', [
-          renderStylePanel()
+          h('.abundance-widgets', computed(widgets, widgets => {
+            return widgets.map( ({name, factory}) => {
+              return h('details', [
+                h('summary', name),
+                factory()
+              ])
+            })
+          }))
         ])
       ])
     ])
@@ -238,7 +252,7 @@ module.exports = function(ssb, config, opts) {
     return computed(mode, mode => modes[mode][aspect] ? a : b)
   }
 
-  return h('.abundance', {
+  const ret = h('.abundance', {
     hooks: [el => abort],
     classList: computed(mode, mode => `viewmode-${[modes[mode].name]}`)
   }, [
@@ -277,6 +291,9 @@ module.exports = function(ssb, config, opts) {
     ], [])
     
   ])
+
+  ret.addWidget = addWidget
+  return ret
 }
 
 function content(kv) {
