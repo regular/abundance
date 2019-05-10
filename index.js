@@ -196,6 +196,7 @@ module.exports = function(ssb, config, opts) {
     })
     const bootMsg = Value()
     const bootRev = config.bootMsgRevision
+    console.watn('webapp version:', bootRev)
     if (bootRev) ssb.get(bootRev, (err, value) => {
       if (err) return console.error(err.message)
       bootMsg.set({key: bootRev, value})
