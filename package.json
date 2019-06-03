@@ -68,6 +68,7 @@
   "dependencies": {
     "collect-mutations": "^1.0.5",
     "debug": "^4.1.1",
+    "is-electron": "^2.2.0",
     "module-styles": "^1.0.0",
     "mutant": "^3.22.1",
     "sodium-native": "^2.2.6",

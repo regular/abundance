@@ -39,6 +39,7 @@ module.exports = function(ssb, opts) {
       return watchHeads(k, {allowAllAuthors: true})
     })
 
+    console.warn('render station')
     return h('.tre-station-container', {
       hooks: [el => abort],
       classList: computed(contentObs, c => c.classes || []),

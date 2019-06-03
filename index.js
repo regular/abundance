@@ -18,6 +18,7 @@ const RoleSelector = require('./role-selector')
 const LanguageSwitch = require('./language-switch')
 const IdleControl = require('./idle-control')
 const UAParser = require('ua-parser-js')
+const isElectron = require('is-electron')
 
 const browserVersion = UAParser().browser
 
@@ -34,7 +35,10 @@ module.exports = function(ssb, config, opts) {
   const mergedKvObs = computed(primarySelection, kv => {
     const c = content(kv)
     if (!c) return
-    return watchMerged(c.revisionRoot || kv.key, {allowAllAuthors: true})
+    return watchMerged(c.revisionRoot || kv.key, {
+      allowAllAuthors: true,
+      suppressIntermediate: true
+    })
   })
 
   function isIgnored(kv) {
@@ -114,7 +118,9 @@ module.exports = function(ssb, config, opts) {
     {name: 'fullscreen',  ui: false, ri: false, ed: false, fs: true  },
     {name: 'overlay',     ui: true,  ri: false, ed: false, fs: true  }
   ]
-  const mode = Value(0)
+  console.warn('is electron', isElectron())
+  const mode = Value(isElectron() ? 0 : 2)
+  console.warn('Initial view mode:', modes[mode()].name)
 
   window.addEventListener('keydown', e =>{
     if (e.key === 'Tab' && e.shiftKey) {
@@ -164,6 +170,7 @@ module.exports = function(ssb, config, opts) {
   }
 
   function renderStage() {
+    console.warn('render stage')
     return h('.abundance-stage', {}, [
       computed(mergedKvObs, kv => {
         if (!kv) return []
@@ -227,12 +234,13 @@ module.exports = function(ssb, config, opts) {
   }
   addWidget('Stylesheets', renderStylePanel )
 
+  let finder
   function renderSidebar() {
     return h('.abundance-sidebar', {
     }, [
       makeSplitPane({horiz: false}, [
         makePane('50%', [
-          renderFinder(config.tre.branches.root, {path: []})
+          finder || (finder = renderFinder(config.tre.branches.root, {path: []}))
         ]),
         makeDivider(),
         makePane('50%', [
@@ -250,25 +258,29 @@ module.exports = function(ssb, config, opts) {
   }
 
   function whenVisible(aspect, a, b) {
-    return computed(mode, mode => modes[mode][aspect] ? a : b)
+    return computed(mode, mode => {
+      console.warn('when visible', aspect, modes[mode][aspect])
+      return modes[mode][aspect] ? a() : b()
+    })
   }
 
+  const topBar = renderTopBar()
   const ret = h('.abundance', {
     hooks: [el => abort],
     classList: computed(mode, mode => `viewmode-${[modes[mode].name]}`)
   }, [
-    whenVisible('ri', [], whenVisible('fs', [
+    whenVisible('ri', () => [], ()=> whenVisible('fs', ()=>[
       renderStage(),
       h('div', {
         style: {
           display: 'none'
         }
       }, [ renderStylePanel()])
-    ], [])),
-    whenVisible('ui', [
+    ], ()=>[])),
+    whenVisible('ui', ()=>[
       h('.abundance-ui', [
         makeSplitPane({horiz: false}, [
-          makePane('4em', [renderTopBar()]),
+          makePane('4em', [topBar]),
           makeDivider(),
           makeSplitPane({horiz: true}, [
             makePane('25%', [renderSidebar()]),
@@ -276,11 +288,12 @@ module.exports = function(ssb, config, opts) {
             makePane('70%',/* {
               style: {opacity: whenVisible('ri', 1, 0)}
             },*/ [
-              whenVisible('fs', renderStage(), []),
+              whenVisible('fs', ()=>renderStage(), ()=>[]),
               h('div.abundance-editor', {
-                style: {display: whenVisible('ed', 'block',  'none')}
+                style: {display: whenVisible('ed', ()=>'block',  ()=>'none')}
               }, computed(renderFinder.primarySelectionObs, kv => {
                 if (!kv) return []
+                console.warn('renderMultiEditor')
                 return renderMultiEditor(kv, Object.assign({}, {
                   render,
                 }, commonContext))
@@ -289,7 +302,7 @@ module.exports = function(ssb, config, opts) {
           ])
         ])
       ])
-    ], [])
+    ], ()=>[])
     
   ])
 
