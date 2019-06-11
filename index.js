@@ -188,26 +188,26 @@ module.exports = function(ssb, config, opts) {
   }
 
   function renderTopBar() {
-    const address = Value(h('span', 'getting address ...'))
-    ssb.getAddress((err, addr)=>{
-      if (err) {
-        address.set(h('span.error', err.message))
-      } else {
-        const [schema, ip, port, id] = addr.split(':')
-        address.set(h(`.${schema}`, [
-          h('.ip', ip),
-          h('.port', port),
-          h('.id', id),
-        ]))
-      } 
-    })
+    const address = Value()
     const bootMsg = Value()
     const bootRev = config.bootMsgRevision
     console.warn('webapp version:', bootRev)
+
+    ssb.getAddress((err, addr)=>{
+      if (err) {
+        console.error('error getting ssb address')
+        address.set(err)
+      } else {
+        const [schema, ip, port, id] = addr.split(':')
+        address.set({schema, ip, port, id})
+      } 
+    })
+
     if (bootRev) ssb.get(bootRev, (err, value) => {
       if (err) return console.error(err.message)
       bootMsg.set({key: bootRev, value})
     }) 
+
     return h('.abundance-topbar', [
       computed(bootMsg, kv => {
         if (!bootRev) return h('div.dev', 'dev version')
@@ -224,7 +224,16 @@ module.exports = function(ssb, config, opts) {
         return h(`span.emoji.emoji-${l}`)
       }),
       idleControls,
-      h('.sbot-address', address)
+      h('.sbot-address', [computed(address, address => {
+        if (!address) return h('span', 'getting address ...')
+        if (address.message) return h('span.error', address.message)
+        const {schema, ip, port, id} = address
+        return h(`.${schema}`, [
+          h('.ip', ip),
+          h('.port', port),
+          h('.id', id),
+        ])
+      })])
     ])
   }
 

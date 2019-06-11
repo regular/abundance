@@ -9,11 +9,13 @@ const Spinner = require('./spinner')
 module.exports = function(opts) {
   opts = opts || {}
   opts.seconds = opts.seconds || 10
+  const idleTimer = IdleTimeout(opts)
+  if (opts.paused) idleTimer.pause()
 
   return function() {
-    const idleTimer = IdleTimeout(opts)
-    if (opts.paused) idleTimer.pause()
     const ourPausedObs = Value(!!opts.paused)
+
+    let abort
 
     const spinner = Spinner({
       color: 'yellow',
@@ -21,14 +23,16 @@ module.exports = function(opts) {
       radius: 8
     })
 
-    const abort = watch(idleTimer.progressObs, progress => {
-      spinner.setProgress(progress)
-    })
-    
     const el = h('.abundance-idle-control', {
-      hooks: [el => el => {
-        idleTimer.abort()
-        abort()
+      hooks: [el => { 
+        abort = watch(idleTimer.progressObs, progress => {
+          spinner.setProgress(progress)
+        })
+
+        return el => {
+          idleTimer.abort()
+          abort()
+        }
       }]
     }, [
       computed(idleTimer.pausedObs, paused => paused ? [] : spinner),
