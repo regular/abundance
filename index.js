@@ -198,8 +198,11 @@ module.exports = function(ssb, config, opts) {
         console.error('error getting ssb address')
         address.set(err)
       } else {
+        console.warn('get address success')
         const [schema, ip, port, id] = addr.split(':')
-        address.set({schema, ip, port, id})
+        const a = {schema, ip, port, id}
+        console.warn('set address to', JSON.stringify(a))
+        address.set(a)
       } 
     })
 
@@ -207,7 +210,7 @@ module.exports = function(ssb, config, opts) {
       if (err) return console.error(err.message)
       bootMsg.set({key: bootRev, value})
     }) 
-
+    
     return h('.abundance-topbar', [
       computed(bootMsg, kv => {
         if (!bootRev) return h('div.dev', 'dev version')
@@ -225,6 +228,7 @@ module.exports = function(ssb, config, opts) {
       }),
       idleControls,
       h('.sbot-address', [computed(address, address => {
+        console.warn('address computed input', address)
         if (!address) return h('span', 'getting address ...')
         if (address.message) return h('span.error', address.message)
         const {schema, ip, port, id} = address
