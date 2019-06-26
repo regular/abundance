@@ -6,11 +6,13 @@ const watch = require('mutant/watch')
 const IdleTimeout = require('./idle-timeout')
 const Spinner = require('./spinner')
 
-module.exports = function(opts) {
+module.exports = function(commonContext, opts) {
+  commonContext = commonContext || {}
   opts = opts || {}
   opts.seconds = opts.seconds || 10
   const idleTimer = IdleTimeout(opts)
   if (opts.paused) idleTimer.pause()
+  commonContext.idleTimer = idleTimer
 
   return function() {
     const ourPausedObs = Value(!!opts.paused)
@@ -70,7 +72,6 @@ module.exports = function(opts) {
         ])
       )
     ])
-    el.idleTimer = idleTimer
     el.pausedObs = ourPausedObs
     return el
   }

@@ -12,15 +12,12 @@ const computed = require('mutant/computed')
 const setStyle = require('module-styles')('abundance')
 const RenderFonts = require('./render-fonts')
 const MultiEditor = require('tre-multi-editor')
-const Webapps = require('tre-webapps')
 const Icons = require('./icons-by-name')
+
 const RoleSelector = require('./role-selector')
 const LanguageSwitch = require('./language-switch')
 const IdleControl = require('./idle-control')
-const UAParser = require('ua-parser-js')
 const isElectron = require('is-electron')
-
-const browserVersion = UAParser().browser
 
 module.exports = function(ssb, config, opts) {
   const {importer} = opts
@@ -103,12 +100,7 @@ module.exports = function(ssb, config, opts) {
       ]
     }
   })
-  const renderRoleSelector = RoleSelector(ssb)
   const renderMultiEditor = MultiEditor(ssb, opts)
-
-  const renderLanguageSwitch = LanguageSwitch(ssb, config)
-  const {languagesObs, currentLanguageObs} = renderLanguageSwitch
-  const renderIdleControl = IdleControl({paused: true, seconds: 30})
 
   const where = Value('editor')
 
@@ -130,8 +122,22 @@ module.exports = function(ssb, config, opts) {
     }
   })
 
+  const commonContext = {}
+
+  function onStationChange(kv) {
+    if (kv) {
+      mode.set(2)
+      primarySelection.set(kv)
+    }
+  }
+
+  const renderRoleSelector = RoleSelector(ssb, onStationChange)
+  const renderLanguageSwitch = LanguageSwitch(ssb, config, commonContext)
+  const renderIdleControl = IdleControl(commonContext, {paused: true, seconds: 30})
   const idleControls = renderIdleControl()
-  const {idleTimer} = idleControls
+
+  const {idleTimer} = commonContext
+
   window.addEventListener('click', e =>{
     idleTimer.reset()
   })
@@ -155,16 +161,6 @@ module.exports = function(ssb, config, opts) {
     return kiosk && idle
   })
 
-  const renderWebapp = Webapps(ssb, {
-    canAutoUpdate
-  })
-
-  const commonContext = {
-    languagesObs,
-    currentLanguageObs,
-    idleTimer 
-  }
-
   function render(kv, ctx) {
     return _render(kv, Object.assign({}, commonContext, ctx))
   }
@@ -187,65 +183,31 @@ module.exports = function(ssb, config, opts) {
     } 
   }
 
+  const sideBarWidgets = MutantArray()
+  const topBarWidgets = MutantArray()
+
   function renderTopBar() {
-    const address = Value()
-    const bootMsg = Value()
-    const bootRev = config.bootMsgRevision
-    console.warn('webapp version:', bootRev)
-
-    ssb.getAddress((err, addr)=>{
-      if (err) {
-        console.error('error getting ssb address')
-        address.set(err)
-      } else {
-        console.warn('get address success')
-        const [schema, ip, port, id] = addr.split(':')
-        const a = {schema, ip, port, id}
-        console.warn('set address to', JSON.stringify(a))
-        address.set(a)
-      } 
-    })
-
-    if (bootRev) ssb.get(bootRev, (err, value) => {
-      if (err) return console.error(err.message)
-      bootMsg.set({key: bootRev, value})
-    }) 
-    
-    return h('.abundance-topbar', [
-      computed(bootMsg, kv => {
-        if (!bootRev) return h('div.dev', 'dev version')
-        if (!kv) return
-        return renderWebapp(kv, {where: 'status'})
-      }),
-      h('.browser-version', [
-        h('span.name', browserVersion.name),
-        h('span.version', browserVersion.version),
-      ]),
-      renderRoleSelector(mode, primarySelection),
-      renderLanguageSwitch(),
-      computed(currentLanguageObs, l => {
-        return h(`span.emoji.emoji-${l}`)
-      }),
-      idleControls,
-      h('.sbot-address', [computed(address, address => {
-        console.warn('address computed input', address)
-        if (!address) return h('span', 'getting address ...')
-        if (address.message) return h('span.error', address.message)
-        const {schema, ip, port, id} = address
-        return h(`.${schema}`, [
-          h('.ip', ip),
-          h('.port', port),
-          h('.id', id),
-        ])
-      })])
-    ])
+    return h('.abundance-topbar', computed(topBarWidgets, widgets => {
+      return widgets.map( ({factory}) => {
+        return factory()
+      })
+    }))
   }
 
-  const widgets = MutantArray()
-  function addWidget(name, factory) {
-    widgets.push({name, factory})
+  function addSideBarWidget(name, factory) {
+    sideBarWidgets.push({name, factory})
   }
-  addWidget('Stylesheets', renderStylePanel )
+  function addTopBarWidget(factory) {
+    topBarWidgets.push({factory})
+  }
+  addSideBarWidget('Stylesheets', renderStylePanel)
+
+  addTopBarWidget(renderRoleSelector)
+  addTopBarWidget(renderLanguageSwitch)
+  addTopBarWidget(()=>idleControls)
+  //addTopBarWidget(renderAddress)
+  //addTopBarWidget(renderBrowserVersion)
+  //addTopBarWidget(renderWebappVersion)
 
   let finder
   function renderSidebar() {
@@ -257,7 +219,7 @@ module.exports = function(ssb, config, opts) {
         ]),
         makeDivider(),
         makePane('50%', [
-          h('.abundance-widgets', computed(widgets, widgets => {
+          h('.abundance-widgets', computed(sideBarWidgets, widgets => {
             return widgets.map( ({name, factory}) => {
               return h('details', [
                 h('summary', name),
@@ -277,7 +239,6 @@ module.exports = function(ssb, config, opts) {
     })
   }
 
-  const topBar = renderTopBar()
   const ret = h('.abundance', {
     hooks: [el => abort],
     classList: computed(mode, mode => `viewmode-${[modes[mode].name]}`)
@@ -293,7 +254,7 @@ module.exports = function(ssb, config, opts) {
     whenVisible('ui', ()=>[
       h('.abundance-ui', [
         makeSplitPane({horiz: false}, [
-          makePane('4em', [topBar]),
+          makePane('4em', renderTopBar()),
           makeDivider(),
           makeSplitPane({horiz: true}, [
             makePane('25%', [renderSidebar()]),
@@ -319,7 +280,7 @@ module.exports = function(ssb, config, opts) {
     
   ])
 
-  ret.addWidget = addWidget
+  ret.addSideBarWidget = addSideBarWidget
   return ret
 }
 

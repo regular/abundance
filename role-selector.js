@@ -9,7 +9,7 @@ const ResolvePrototypes = require('tre-prototypes')
 const h = require('mutant/html-element')
 const deepEqual = require('deep-equal')
 
-module.exports = function(ssb) {
+module.exports = function(ssb, onStationChange) {
   const feedId = Value()
   const resolvePrototypes = ResolvePrototypes(ssb)
   ssb.whoami((err, feed)=>{
@@ -17,12 +17,65 @@ module.exports = function(ssb) {
     feedId.set(feed.id)
   })
 
+  const stations = trackStations()
+  const currentRole = trackCurrentRole()
+  const currentStation = trackCurrentStation(currentRole)
+
+  const abort = currentStation(kv => {
+    console.log('station changed', kv)
+    onStationChange(kv)
+  })
+
+  return function renderSelector() {
+    return h('select.tre-roles', {
+      /*
+      hooks: [el => el => {
+        stations.abort()
+        currentRole.abort()
+        abort()
+      }],
+      */
+      'ev-change': e => {
+        const kv = currentRole()
+        const revisionRoot = kv && kv.value.content.revisionRoot || kv && kv.key
+        const revisionBranch = kv && kv.key
+        ssb.publish({
+          type: 'role',
+          about: feedId(),
+          station: e.target.value || undefined,
+          revisionRoot,
+          revisionBranch
+        }, (err, msg) => {
+          if (err) return console.error(err.message)
+          console.warn('published', msg)
+        })
+      }
+    }, MutantMap(stations, kvm => {
+      const name = computed(kvm, kvm =>
+        kvm && kvm.value.content.name || 'no name'
+      )
+      const revRoot = computed(kvm, kvm => 
+        kvm && kvm.value.content.revisionRoot || kvm && kvm.key
+      )
+      const selected = computed([revRoot, currentRole], (r,c) => {
+        return c && c.value.content.station == r
+      })
+      return h('option', {
+        value: revRoot,
+        selected
+      }, name)
+    }))
+  }
+
   function trackStations() {
     const stations = MutantArray()
     const o = {sync: true, live: true}
     const drain = collectMutations(stations, o)
     pull(
       ssb.revisions.messagesByType('station', o),
+      pull.through( kv=>{
+        console.warn('TYPE STATION', kv)
+      }),
       drain
     )
     const resolved = MutantMap(stations, resolvePrototypes, {comparer: deepEqual})
@@ -72,54 +125,4 @@ module.exports = function(ssb) {
     return currentStation
   }
 
-  return function renderSelector(mode, selection) {
-    const stations = trackStations()
-    const currentRole = trackCurrentRole()
-    const currentStation = trackCurrentStation(currentRole)
-
-    const abort = currentStation(kv => {
-      console.log('watch station', kv)
-      if (kv) {
-        mode.set(2)
-        selection.set(kv)
-      }
-    })
-
-    return h('select.tre-roles', {
-      hooks: [el => el => {
-        stations.abort()
-        currentRole.abort()
-        abort()
-      }],
-      'ev-change': e => {
-        const kv = currentRole()
-        const revisionRoot = kv && kv.value.content.revisionRoot || kv && kv.key
-        const revisionBranch = kv && kv.key
-        ssb.publish({
-          type: 'role',
-          about: feedId(),
-          station: e.target.value || undefined,
-          revisionRoot,
-          revisionBranch
-        }, (err, msg) => {
-          if (err) return console.error(err.message)
-          console.warn('published', msg)
-        })
-      }
-    }, MutantMap(stations, kvm => {
-      const name = computed(kvm, kvm =>
-        kvm && kvm.value.content.name || 'no name'
-      )
-      const revRoot = computed(kvm, kvm => 
-        kvm && kvm.value.content.revisionRoot || kvm && kvm.key
-      )
-      const selected = computed([revRoot, currentRole], (r,c) => {
-        return c && c.value.content.station == r
-      })
-      return h('option', {
-        value: revRoot,
-        selected
-      }, name)
-    }))
-  }
 }

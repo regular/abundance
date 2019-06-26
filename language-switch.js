@@ -5,7 +5,7 @@ const WatchMerged = require('tre-prototypes')
 const h = require('mutant/html-element')
 const debug = require('debug')('abundance:language-switch')
 
-module.exports = function(ssb, config) {
+module.exports = function(ssb, config, commonContext) {
   const language = Value()
   const watchMerged = WatchMerged(ssb)
 
@@ -15,9 +15,17 @@ module.exports = function(ssb, config) {
   })
   const currentObs = Value()
 
-  const ret = function renderSelector() {
-    return computed(languagesObs, langs => {
-      return h('select.tre-language-switch', {
+  commonContext.languagesObs = languagesObs
+  commonContext.currentLanguageObs = computed([languagesObs, currentObs], (langs, c) =>{
+    return (c && langs.includes(c)) ? c : langs[0] || computed.NO_CHANGE
+  })
+  commonContext.currentLanguageObs.set = function(x) {
+    currentObs.set(x)
+  }
+
+  return function renderSelector() {
+    const selectEl = computed(languagesObs, langs => {
+      return h('select', {
         'ev-change': e => {
           debug('switched to: %s', e.target.value)
           currentObs.set(e.target.value)
@@ -32,15 +40,16 @@ module.exports = function(ssb, config) {
         }, l)
       }))
     })
+
+    const iconEl = computed(currentObs, l => {
+      return h(`span.emoji.emoji-${l}`)
+    })
+
+    return h('.tre-language-switch', [
+      selectEl,
+      iconEl
+    ])
   }
-  ret.languagesObs = languagesObs
-  ret.currentLanguageObs = computed([languagesObs, currentObs], (langs, c) =>{
-    return (c && langs.includes(c)) ? c : langs[0] || computed.NO_CHANGE
-  })
-  ret.currentLanguageObs.set = function(x) {
-    currentObs.set(x)
-  }
-  return ret
 
   function trackConfig(config) {
     const c = MutantProxy(Value(config))
