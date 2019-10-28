@@ -32,6 +32,7 @@ module.exports = function(ssb, config, opts) {
 
   const watchMerged = WatchMerged(ssb)
   const primarySelection = Value()
+  const secondarySelections = Value([])
   const mergedKvObs = computed(primarySelection, kv => {
     const c = content(kv)
     if (!c) return
@@ -54,6 +55,7 @@ module.exports = function(ssb, config, opts) {
     importer,
     skipFirstLevel: true,
     primarySelection,
+    secondarySelections,
     prolog: (kv, ctx) => {
       if (!kv) return []
       const meta = kv.meta
@@ -162,7 +164,9 @@ module.exports = function(ssb, config, opts) {
   const commonContext = {
     languagesObs,
     currentLanguageObs,
-    idleTimer 
+    idleTimer,
+    primarySelection,
+    secondarySelections
   }
 
   function render(kv, ctx) {
@@ -345,7 +349,7 @@ function styles() {
     }
     body {
       --tre-selection-color: green;
-      --tre-secondary-selection-color: yellow;
+      --tre-secondary-selection-color: #6f8f5f;
       font-family: sans-serif;
     }
     .abundance {
